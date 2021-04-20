@@ -16,6 +16,8 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include "asio/detail/config.hpp"
+#include "asio/associated_stop_token.hpp"
+#include "asio/stoppable_token_callback.hpp"
 #include "asio/detail/bind_handler.hpp"
 #include "asio/detail/fenced_block.hpp"
 #include "asio/detail/handler_alloc_helpers.hpp"
@@ -28,16 +30,18 @@
 namespace asio {
 namespace detail {
 
-template <typename Handler, typename IoExecutor>
+template <typename Handler, typename IoExecutor, typename Stopper>
 class wait_handler : public wait_op
 {
 public:
   ASIO_DEFINE_HANDLER_PTR(wait_handler);
 
-  wait_handler(Handler& h, const IoExecutor& io_ex)
+  wait_handler(Handler& h, const IoExecutor& io_ex, Stopper stopper)
     : wait_op(&wait_handler::do_complete),
       handler_(ASIO_MOVE_CAST(Handler)(h)),
-      work_(handler_, io_ex)
+      work_(handler_, io_ex),
+      stop_callback_(asio::get_associated_stop_token(handler_),
+          stop_callback_impl(ASIO_MOVE_CAST(Stopper)(stopper), this))
   {
   }
 
@@ -78,8 +82,30 @@ public:
   }
 
 private:
+  class stop_callback_impl
+  {
+  public:
+    stop_callback_impl(Stopper stopper, wait_op* op)
+      : stopper_(ASIO_MOVE_CAST(Stopper)(stopper)),
+        op_(op)
+    {
+    }
+
+    void operator()() const
+    {
+      stopper_(op_);
+    }
+
+  private:
+    Stopper stopper_;
+    wait_op* op_;
+  };
+
   Handler handler_;
   handler_work<Handler, IoExecutor> work_;
+  typename stoppable_token_callback<
+    typename associated_stop_token<Handler>::type,
+      stop_callback_impl>::type stop_callback_;
 };
 
 } // namespace detail

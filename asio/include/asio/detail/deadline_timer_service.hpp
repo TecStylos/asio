@@ -245,18 +245,35 @@ public:
   void async_wait(implementation_type& impl,
       Handler& handler, const IoExecutor& io_ex)
   {
+    bool is_continuation =
+      asio_handler_cont_helpers::is_continuation(handler);
+
+    auto stop_token = asio::get_associated_stop_token(handler);
+
+    auto stopper =
+      [this, timer = &impl.timer_data](wait_op* target_op)
+      {
+        scheduler_.cancel_timer_op(timer_queue_, timer, target_op);
+      };
+
     // Allocate and construct an operation to wrap the handler.
-    typedef wait_handler<Handler, IoExecutor> op;
+    typedef wait_handler<Handler, IoExecutor, decltype(stopper)> op;
     typename op::ptr p = { asio::detail::addressof(handler),
       op::ptr::allocate(handler), 0 };
-    p.p = new (p.v) op(handler, io_ex);
+    p.p = new (p.v) op(handler, io_ex, stopper),
 
     impl.might_have_pending_waits = true;
 
     ASIO_HANDLER_CREATION((scheduler_.context(),
           *p.p, "deadline_timer", &impl, 0, "async_wait"));
 
-    scheduler_.schedule_timer(timer_queue_, impl.expiry, impl.timer_data, p.p);
+    if (stop_token.stop_requested())
+    {
+      p.p->ec_ = asio::error_code();
+      scheduler_.post_immediate_completion(p.p, is_continuation);
+    }
+    else
+      scheduler_.schedule_timer(timer_queue_, impl.expiry, impl.timer_data, p.p);
     p.v = p.p = 0;
   }
 

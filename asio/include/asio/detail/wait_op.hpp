@@ -32,7 +32,8 @@ public:
 
 protected:
   wait_op(func_type func)
-    : operation(func)
+    : operation(func),
+      ec_(asio::error::would_block)
   {
   }
 };
