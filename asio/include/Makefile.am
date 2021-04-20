@@ -495,6 +495,7 @@ nobase_include_HEADERS = \
 	asio/ssl/verify_mode.hpp \
 	asio/static_thread_pool.hpp \
 	asio/steady_timer.hpp \
+	asio/stoppable_token_callback.hpp \
 	asio/strand.hpp \
 	asio/streambuf.hpp \
 	asio/system_context.hpp \

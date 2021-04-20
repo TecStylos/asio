@@ -153,6 +153,7 @@
 #include "asio/socket_base.hpp"
 #include "asio/static_thread_pool.hpp"
 #include "asio/steady_timer.hpp"
+#include "asio/stoppable_token_callback.hpp"
 #include "asio/strand.hpp"
 #include "asio/streambuf.hpp"
 #include "asio/system_context.hpp"
