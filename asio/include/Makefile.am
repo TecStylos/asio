@@ -442,6 +442,7 @@ nobase_include_HEADERS = \
 	asio/local/detail/impl/endpoint.ipp \
 	asio/local/stream_protocol.hpp \
 	asio/multiple_exceptions.hpp \
+	asio/never_stop_token.hpp \
 	asio/packaged_task.hpp \
 	asio/placeholders.hpp \
 	asio/posix/basic_descriptor.hpp \
