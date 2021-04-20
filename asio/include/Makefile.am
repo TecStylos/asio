@@ -3,6 +3,7 @@ nobase_include_HEADERS = \
 	asio/any_io_executor.hpp \
 	asio/associated_allocator.hpp \
 	asio/associated_executor.hpp \
+	asio/associated_stop_token.hpp \
 	asio/associator.hpp \
 	asio/async_result.hpp \
 	asio/awaitable.hpp \
