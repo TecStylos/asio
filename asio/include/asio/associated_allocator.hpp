@@ -17,11 +17,16 @@
 
 #include "asio/detail/config.hpp"
 #include <memory>
+#include "asio/associator.hpp"
 #include "asio/detail/type_traits.hpp"
 
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+
+template <typename T, typename Allocator>
+struct associated_allocator;
+
 namespace detail {
 
 template <typename T, typename E, typename = void>
@@ -45,6 +50,14 @@ struct associated_allocator_impl<T, E,
   {
     return t.get_allocator();
   }
+};
+
+template <typename T, typename E>
+struct associated_allocator_impl<T, E,
+  typename void_type<
+    typename associator<associated_allocator, T, E>::type
+  >::type> : associator<associated_allocator, T, E>
+{
 };
 
 } // namespace detail
